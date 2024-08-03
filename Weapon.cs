@@ -1,3 +1,5 @@
+using System;
+
 public class Weapon
 {
     public int Damage { get; private set; }
@@ -5,45 +7,69 @@ public class Weapon
 
     public Weapon(int damage, int bullets)
     {
+        if (damage <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(damage), "Damage must be positive.");
+        }
+        if (bullets < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(bullets), "Bullets cannot be negative.");
+        }
+
         Damage = damage;
         Bullets = bullets;
     }
 
-    public void Fire(int Bullet)
+    public void Fire()
     {
-        if (Bullets > 0)        
-            Bullets--;
+        Bullets -= 1;
     }
 }
 
 public class Player
 {
-    private int Health;
+    private int _health;
 
     public Player(int health)
     {
-        Health = health;
+        if (health <= 0)
+            throw new ArgumentOutOfRangeException(nameof(health), "Health must be positive.");
+
+        _health = health;
     }
 
-    private void TakeDamage(int damage)
+    public void TakeDamage(int damage)
     {
-        Health -= damage;
+        if (damage <= 0)
+            throw new ArgumentOutOfRangeException(nameof(damage), "Damage must be positive.");
 
-        if (Health < 0) 
-            Health = 0; 
-    }
+        _health -= damage;
 
-    public int GetHealth()
-    {
-        return Health;
+        if (_health < 0)
+            _health = 0;
     }
 }
 
 public class Bot
 {
-    private void OnSeePlayer(Player player, Weapon weapon)
+    private Weapon _weapon;
+
+    public Bot(Weapon weapon)
     {
-        player.TakeDamage(weapon.Damage);
-        weapon.Fire(weapon.Bullets);
+        if (weapon == null)
+        {
+            throw new ArgumentNullException(nameof(weapon));
+        }
+
+        _weapon = weapon;
+    }
+
+    public void OnSeePlayer(Player player)
+    {
+        if (player == null)
+            throw new ArgumentNullException(nameof(player));
+
+        player.TakeDamage(_weapon.Damage);
+        _weapon.Fire();
     }
 }
