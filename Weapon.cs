@@ -2,28 +2,33 @@ using System;
 
 public class Weapon
 {
-    public int Damage { get; private set; }
-    public int Bullets { get; private set; }
-
     public Weapon(int damage, int bullets)
     {
         if (damage <= 0)
-        {
             throw new ArgumentOutOfRangeException(nameof(damage), "Damage must be positive.");
-        }
+
         if (bullets < 0)
-        {
             throw new ArgumentOutOfRangeException(nameof(bullets), "Bullets cannot be negative.");
-        }
 
         Damage = damage;
         Bullets = bullets;
     }
 
-    public void Fire()
+    public int Damage { get; private set; }
+    public int Bullets { get; private set; }
+
+    public void Fire(Player player)
     {
-        Bullets -= 1;
+        if (player == null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (Bullets <= 0)
+            throw new InvalidOperationException("Cannot fire: No bullets left.");
+
+        player.TakeDamage(Damage);
+        Bullets--;
     }
+
 }
 
 public class Player
@@ -38,6 +43,8 @@ public class Player
         _health = health;
     }
 
+    public int Health => _health; 
+
     public void TakeDamage(int damage)
     {
         if (damage <= 0)
@@ -45,23 +52,18 @@ public class Player
 
         _health -= damage;
 
-        if (_health < 0)
+        if (_health < 0) 
             _health = 0;
     }
 }
 
 public class Bot
 {
-    private Weapon _weapon;
+    private readonly Weapon _weapon;
 
     public Bot(Weapon weapon)
     {
-        if (weapon == null)
-        {
-            throw new ArgumentNullException(nameof(weapon));
-        }
-
-        _weapon = weapon;
+        _weapon = weapon ?? throw new ArgumentNullException(nameof(weapon));
     }
 
     public void OnSeePlayer(Player player)
@@ -69,7 +71,6 @@ public class Bot
         if (player == null)
             throw new ArgumentNullException(nameof(player));
 
-        player.TakeDamage(_weapon.Damage);
-        _weapon.Fire();
+        _weapon.Fire(player);
     }
 }
